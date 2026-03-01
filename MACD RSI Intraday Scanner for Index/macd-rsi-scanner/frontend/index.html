@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MACD+RSI Scanner — Live Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-pulse"></span>
+    MACD<span>+</span>RSI <span style="color:var(--text-secondary);font-weight:400">Scanner</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">Live Dashboard</a>
+    <a class="nav-link" href="history.html">Trade History</a>
+    <a class="nav-link" href="backtest.html">Backtest Results</a>
+    <a class="nav-link" href="settings.html">Settings</a>
+  </div>
+  <div class="nav-status">
+    <div class="next-scan">
+      Next scan in <span class="next-scan-time" id="countdown">--:--</span>
+    </div>
+    <span id="market-badge" class="market-badge closed">
+      <span class="market-badge-dot"></span> MARKET CLOSED
+    </span>
+    <button class="btn btn-outline" onclick="triggerManualScan()" id="scan-now-btn" style="font-size:0.78rem;padding:5px 12px;">
+      ⟳ Scan Now
+    </button>
+  </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<div class="layout">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Live Dashboard</div>
+      <div class="page-subtitle" style="color:var(--text-secondary)">
+        NIFTY · BANKNIFTY · SENSEX — 15min MACD+RSI Intraday Scanner
+      </div>
+    </div>
+    <div class="flex gap-8" id="halted-badge"></div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Realized P&L</div>
+      <div class="stat-value" id="total-pnl">—</div>
+      <div class="stat-sub">Today's closed trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Running Capital</div>
+      <div class="stat-value primary" id="capital">—</div>
+      <div class="stat-sub">Starting: ₹10L</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Daily Loss</div>
+      <div class="stat-value" id="daily-loss-val">—</div>
+      <div class="stat-sub">Limit: ₹25,000</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Updated</div>
+      <div class="stat-value" style="font-size:0.9rem" id="last-updated">—</div>
+      <div class="stat-sub">Auto refreshes at candle close</div>
+    </div>
+  </div>
+
+  <!-- Daily Loss Limit Bar -->
+  <div class="card loss-limit-bar">
+    <div class="flex-between">
+      <span class="card-title">Daily Loss Limit</span>
+      <span class="text-mono" style="font-size:0.75rem;color:var(--text-secondary)" id="loss-text">—</span>
+    </div>
+    <div class="loss-track">
+      <div class="loss-fill safe" id="loss-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Instrument Cards Grid -->
+  <div class="instrument-grid" id="instrument-grid">
+    <!-- Skeleton placeholders while loading -->
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div>
+          <div class="inst-name" style="opacity:0.3">NIFTY</div>
+          <div class="inst-price" style="opacity:0.2">——————</div>
+        </div>
+        <div><span class="signal-badge none">LOADING...</span></div>
+      </div>
+      <div class="inst-body">
+        <div class="position-row no-pos">
+          <div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div>
+        </div>
+      </div>
+    </div>
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div>
+          <div class="inst-name" style="opacity:0.3">BANKNIFTY</div>
+          <div class="inst-price" style="opacity:0.2">——————</div>
+        </div>
+        <div><span class="signal-badge none">LOADING...</span></div>
+      </div>
+      <div class="inst-body">
+        <div class="position-row no-pos">
+          <div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div>
+        </div>
+      </div>
+    </div>
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div>
+          <div class="inst-name" style="opacity:0.3">SENSEX</div>
+          <div class="inst-price" style="opacity:0.2">——————</div>
+        </div>
+        <div><span class="signal-badge none">LOADING...</span></div>
+      </div>
+      <div class="inst-body">
+        <div class="position-row no-pos">
+          <div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error message -->
+  <div id="error-msg" style="display:none;color:var(--loss);font-family:var(--font-mono);font-size:0.8rem;text-align:center;padding:20px;background:var(--sell-bg);border:1px solid var(--sell-border);border-radius:var(--radius-lg);margin-top:16px"></div>
+
+  <!-- How It Works Info -->
+  <div class="card mt-24">
+    <div class="card-title mb-16">Scanner Configuration</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+      <!-- NIFTY -->
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px">
+        <div style="font-family:var(--font-display);font-weight:700;margin-bottom:10px;color:var(--primary-bright)">NIFTY</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-secondary);line-height:1.9">
+          <div>MACD: <span style="color:var(--text-primary)">16 / 34 / 12 (WMA/EMA)</span></div>
+          <div>RSI: <span style="color:var(--text-primary)">9 | EMA smooth 5</span></div>
+          <div>Exit: <span style="color:var(--text-primary)">Trail SL (10 ATR × 3.0x)</span></div>
+          <div>Lot Size: <span style="color:var(--text-primary)">75</span></div>
+        </div>
+      </div>
+      <!-- BANKNIFTY -->
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px">
+        <div style="font-family:var(--font-display);font-weight:700;margin-bottom:10px;color:var(--primary-bright)">BANKNIFTY</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-secondary);line-height:1.9">
+          <div>MACD: <span style="color:var(--text-primary)">12 / 21 / 9 (EMA/EMA)</span></div>
+          <div>RSI: <span style="color:var(--text-primary)">7 | EMA smooth 3</span></div>
+          <div>Exit: <span style="color:var(--text-primary)">Trail SL (7 ATR × 3.0x)</span></div>
+          <div>Lot Size: <span style="color:var(--text-primary)">30</span></div>
+        </div>
+      </div>
+      <!-- SENSEX -->
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px">
+        <div style="font-family:var(--font-display);font-weight:700;margin-bottom:10px;color:var(--primary-bright)">SENSEX</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-secondary);line-height:1.9">
+          <div>MACD: <span style="color:var(--text-primary)">16 / 26 / 9 (WMA/EMA)</span></div>
+          <div>RSI: <span style="color:var(--text-primary)">7 | WMA smooth 5</span></div>
+          <div>Exit: <span style="color:var(--text-primary)">Signal-based only</span></div>
+          <div>Lot Size: <span style="color:var(--text-primary)">20</span></div>
+        </div>
+      </div>
+      <!-- Grade Guide -->
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px">
+        <div style="font-family:var(--font-display);font-weight:700;margin-bottom:10px;color:var(--primary-bright)">Signal Grades</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;line-height:2">
+          <span class="grade-badge aplus">A+</span>
+          <span style="color:var(--text-secondary);margin-left:8px">Score 8 — Max momentum</span><br>
+          <span class="grade-badge a">A</span>
+          <span style="color:var(--text-secondary);margin-left:8px">Score 6-7 — Strong signal</span><br>
+          <span class="grade-badge bplus">B+</span>
+          <span style="color:var(--text-secondary);margin-left:8px">Score 4-5 — Good signal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="js/supabase.js"></script>
+<script src="js/scanner.js"></script>
+</body>
+</html>
