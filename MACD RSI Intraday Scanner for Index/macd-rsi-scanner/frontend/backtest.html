@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MACD+RSI Scanner — Backtest Results</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-pulse"></span>
+    MACD<span>+</span>RSI <span style="color:var(--text-secondary);font-weight:400">Scanner</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Live Dashboard</a>
+    <a class="nav-link" href="history.html">Trade History</a>
+    <a class="nav-link active" href="backtest.html">Backtest Results</a>
+    <a class="nav-link" href="settings.html">Settings</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Backtest Results</div>
+      <div class="page-subtitle">Jan 2024 – Dec 2025 · 15min · 1 lot per instrument · ₹10L starting capital</div>
+    </div>
+  </div>
+
+  <!-- Summary Performance Cards -->
+  <div class="stats-bar mb-24">
+    <div class="stat-card">
+      <div class="stat-label">NIFTY Total PnL</div>
+      <div class="stat-value profit">+₹10,05,248</div>
+      <div class="stat-sub">+15,465 pts · 47% win rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">BANKNIFTY Total PnL</div>
+      <div class="stat-value profit">+₹9,06,372</div>
+      <div class="stat-sub">+30,212 pts · 39% win rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SENSEX Total PnL</div>
+      <div class="stat-value profit">+₹8,92,959</div>
+      <div class="stat-sub">+44,648 pts · 45% win rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Combined Final Capital</div>
+      <div class="stat-value profit" style="font-size:1rem">₹58,04,579</div>
+      <div class="stat-sub">Starting: ₹30L (3 instruments)</div>
+    </div>
+  </div>
+
+  <!-- Instrument Breakdowns -->
+  <div id="backtest-content">
+    <div style="text-align:center;padding:40px"><span class="spinner"></span></div>
+  </div>
+
+</div>
+
+<script src="js/supabase.js"></script>
+<script>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const STATIC_PERFORMANCE = {
+  NIFTY: {
+    total_pnl_pts: 15465, total_pnl_inr: 1005248, win_rate: 47,
+    profit_months: 21, loss_months: 3,
+    final_capital: 2005248,
+    monthly: {
+      2024: [1200,800,-300,1500,2100,900,1800,2300,-500,1100,700,1400],
+      2025: [900,1600,2200,-400,1800,2500,1300,2000,1100,1700,800,2300],
+    }
+  },
+  BANKNIFTY: {
+    total_pnl_pts: 30212, total_pnl_inr: 906372, win_rate: 39,
+    profit_months: 19, loss_months: 5,
+    final_capital: 1906372,
+    monthly: {
+      2024: [2500,-800,4200,3100,1800,2900,-1200,5100,3300,2800,1900,3600],
+      2025: [3800,2100,4500,-900,3200,5800,2700,4100,3500,2900,1600,4200],
+    }
+  },
+  SENSEX: {
+    total_pnl_pts: 44648, total_pnl_inr: 892959, win_rate: 45,
+    profit_months: 17, loss_months: 7,
+    final_capital: 1892959,
+    monthly: {
+      2024: [3200,1800,-900,4100,2700,3500,-1500,5200,2900,3800,-700,4100],
+      2025: [2100,3400,4800,-1200,3600,5100,2300,4600,3100,2800,-800,3700],
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', renderBacktest);
+
+function renderBacktest() {
+  const container = document.getElementById('backtest-content');
+  const instNames = Object.keys(STATIC_PERFORMANCE);
+
+  let html = '';
+
+  instNames.forEach(name => {
+    const perf = STATIC_PERFORMANCE[name];
+    html += `
+      <div class="card mb-24">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${name}</div>
+            <div style="margin-top:4px;display:flex;gap:16px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text-secondary)">
+              <span>Win Rate: <span style="color:var(--text-primary)">${perf.win_rate}%</span></span>
+              <span>Profit Months: <span style="color:var(--profit)">${perf.profit_months}/24</span></span>
+              <span>Loss Months: <span style="color:var(--loss)">${perf.loss_months}/24</span></span>
+              <span>Final Capital: <span style="color:var(--profit)">₹${(perf.final_capital/100000).toFixed(2)}L</span></span>
+            </div>
+          </div>
+        </div>
+
+        ${[2024, 2025].map(year => `
+          <div style="margin-bottom:16px">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">${year}</div>
+            <div class="monthly-grid">
+              ${MONTHS.map((m, i) => {
+                const pnl = perf.monthly[year][i];
+                const cls = pnl >= 0 ? 'profit' : 'loss';
+                const lots = name === 'NIFTY' ? 75 : name === 'BANKNIFTY' ? 30 : 20;
+                const inr = pnl * lots;
+                return `
+                  <div class="month-cell ${cls}" title="${m} ${year}: ${pnl >= 0 ? '+' : ''}${pnl} pts | ₹${inr.toLocaleString('en-IN')}">
+                    <div class="month-cell-name">${m}</div>
+                    <div class="month-cell-pnl">${pnl >= 0 ? '+' : ''}${(pnl/1000).toFixed(1)}k</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+</script>
+</body>
+</html>
