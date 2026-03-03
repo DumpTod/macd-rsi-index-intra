@@ -5,7 +5,7 @@
 
 const CONFIG = {
   // Replace with your deployed backend URL
-  API_BASE: localStorage.getItem('api_base') || 'http://localhost:8000',
+  API_BASE: localStorage.getItem('api_base') || 'https://macd-rsi-index-intra.onrender.com',
   REFRESH_INTERVAL: 15 * 60 * 1000, // 15 minutes
 };
 
