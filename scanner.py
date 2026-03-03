@@ -45,7 +45,7 @@ class Scanner:
             name: InstrumentState(name) for name in INSTRUMENTS
         }
         self.daily_loss: float = 0.0
-        self.capital: float = float(self.db.get_db_setting("capital") or RISK["starting_capital"])
+        self.capital: float = float(RISK["starting_capital"])
         self._trading_halted: bool = False
 
         # Reload open trades from DB on startup
