@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MACD+RSI Scanner — Live Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-pulse"></span>
+    MACD <span class="plus">+</span> RSI Scanner
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">Live Dashboard</a>
+    <a class="nav-link" href="history.html">Trade History</a>
+    <a class="nav-link" href="backtest.html">Backtest Results</a>
+    <a class="nav-link" href="settings.html">Settings</a>
+  </div>
+  <div class="nav-right">
+    <div class="next-scan-wrap">Next scan in <span id="countdown">--:--</span></div>
+    <span id="market-badge" class="market-badge closed">
+      <span class="market-dot"></span> MARKET CLOSED
+    </span>
+    <button class="btn btn-primary" onclick="triggerManualScan()" id="scan-now-btn" style="padding:6px 14px;font-size:0.78rem">
+      ⟳ Scan Now
+    </button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Live Dashboard</div>
+      <div class="page-subtitle">NIFTY · BANKNIFTY · SENSEX — 15min MACD+RSI Intraday Scanner</div>
+    </div>
+    <div id="halted-badge"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Realized P&L</div>
+      <div class="stat-value" id="total-pnl">—</div>
+      <div class="stat-sub">Today's closed trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Running Capital</div>
+      <div class="stat-value primary" id="capital">—</div>
+      <div class="stat-sub">Starting: ₹10L</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Daily Loss</div>
+      <div class="stat-value" id="daily-loss-val">—</div>
+      <div class="stat-sub">Limit: ₹25,000</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Updated</div>
+      <div class="stat-value" style="font-size:0.9rem" id="last-updated">—</div>
+      <div class="stat-sub">Auto refreshes at candle close</div>
+    </div>
+  </div>
+
+  <!-- Loss Limit Bar -->
+  <div class="loss-limit-card">
+    <div class="card-title" style="margin:0;white-space:nowrap">Daily Loss Limit</div>
+    <div class="loss-track">
+      <div class="loss-fill safe" id="loss-fill" style="width:0%"></div>
+    </div>
+    <div class="loss-text" id="loss-text">—</div>
+  </div>
+
+  <!-- Instrument Cards -->
+  <div class="instrument-grid" id="instrument-grid">
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div><div class="inst-name">NIFTY</div><div class="inst-price" style="opacity:0.3">Loading...</div></div>
+        <span class="signal-badge none">CONNECTING...</span>
+      </div>
+      <div class="inst-body"><div class="position-row no-pos"><div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div></div></div>
+    </div>
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div><div class="inst-name">BANKNIFTY</div><div class="inst-price" style="opacity:0.3">Loading...</div></div>
+        <span class="signal-badge none">CONNECTING...</span>
+      </div>
+      <div class="inst-body"><div class="position-row no-pos"><div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div></div></div>
+    </div>
+    <div class="instrument-card">
+      <div class="inst-header">
+        <div><div class="inst-name">SENSEX</div><div class="inst-price" style="opacity:0.3">Loading...</div></div>
+        <span class="signal-badge none">CONNECTING...</span>
+      </div>
+      <div class="inst-body"><div class="position-row no-pos"><div class="pos-label" style="width:100%;text-align:center">Connecting to scanner...</div></div></div>
+    </div>
+  </div>
+
+  <div id="error-msg" style="display:none;color:var(--sell);font-family:var(--mono);font-size:0.8rem;text-align:center;padding:20px;background:var(--sell-lt);border:1px solid var(--sell-bd);border-radius:var(--r-lg);margin-top:16px"></div>
+
+  <!-- Config Info -->
+  <div class="card mt-24">
+    <div class="card-title">Scanner Configuration</div>
+    <div class="config-grid">
+      <div class="config-item">
+        <div class="config-item-title">NIFTY</div>
+        <div class="config-row">MACD<span>16 / 34 / 12 (WMA/EMA)</span></div>
+        <div class="config-row">RSI<span>9 · EMA smooth 5</span></div>
+        <div class="config-row">Exit<span>Trail SL · 10 ATR × 3.0x</span></div>
+        <div class="config-row">Lot Size<span>75</span></div>
+      </div>
+      <div class="config-item">
+        <div class="config-item-title">BANKNIFTY</div>
+        <div class="config-row">MACD<span>12 / 21 / 9 (EMA/EMA)</span></div>
+        <div class="config-row">RSI<span>7 · EMA smooth 3</span></div>
+        <div class="config-row">Exit<span>Trail SL · 7 ATR × 3.0x</span></div>
+        <div class="config-row">Lot Size<span>30</span></div>
+      </div>
+      <div class="config-item">
+        <div class="config-item-title">SENSEX</div>
+        <div class="config-row">MACD<span>16 / 26 / 9 (WMA/EMA)</span></div>
+        <div class="config-row">RSI<span>7 · WMA smooth 5</span></div>
+        <div class="config-row">Exit<span>Signal-based only</span></div>
+        <div class="config-row">Lot Size<span>20</span></div>
+      </div>
+      <div class="config-item">
+        <div class="config-item-title">Grade Guide</div>
+        <div style="line-height:2.2">
+          <span class="grade-badge aplus">A+</span> <span style="font-size:0.75rem;color:var(--text-muted);margin-left:6px">Score 8 · Max momentum</span><br>
+          <span class="grade-badge a">A</span> <span style="font-size:0.75rem;color:var(--text-muted);margin-left:6px">Score 6-7 · Strong signal</span><br>
+          <span class="grade-badge bplus">B+</span> <span style="font-size:0.75rem;color:var(--text-muted);margin-left:6px">Score 4-5 · Good signal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="js/supabase.js"></script>
+<script src="js/scanner.js"></script>
+</body>
+</html>
