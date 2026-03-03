@@ -1,1 +1,0 @@
-# macd-rsi-index-intra
