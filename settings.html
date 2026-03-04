@@ -40,14 +40,20 @@
     <!-- API Credentials -->
     <div class="settings-section">
       <div class="settings-title">🔑 Fyers API Credentials</div>
-      <div class="form-row">
-        <label class="form-label">App ID</label>
-        <input class="form-input" type="text" id="fyers-app-id" placeholder="Your Fyers App ID" />
-      </div>
-      <div class="form-row">
-        <label class="form-label">Secret Key</label>
-        <input class="form-input" type="password" id="fyers-secret" placeholder="••••••••••••" />
-      </div>
+     <div class="form-row">
+  <label class="form-label">App ID</label>
+  <div style="display:flex;gap:8px">
+    <input class="form-input" type="text" id="fyers-app-id" placeholder="Your Fyers App ID" />
+    <button class="btn btn-outline btn-sm" onclick="clearField('fyers-app-id','fyers_app_id')">✕</button>
+  </div>
+</div>
+<div class="form-row">
+  <label class="form-label">Secret Key</label>
+  <div style="display:flex;gap:8px">
+    <input class="form-input" type="text" id="fyers-secret" placeholder="Your Secret Key" />
+    <button class="btn btn-outline btn-sm" onclick="clearField('fyers-secret','fyers_secret')">✕</button>
+  </div>
+</div>
       <div class="form-row">
         <label class="form-label">Access Token</label>
         <input class="form-input" type="password" id="fyers-token" placeholder="••••••••••••••••••••" />
@@ -230,6 +236,24 @@ async function testConnection() {
     status.style.color = 'var(--sell)';
   }
 }
+  // --- paste new code here ---
+document.getElementById('fyers-app-id').value = localStorage.getItem('fyers_app_id') || '';
+document.getElementById('fyers-secret').value = localStorage.getItem('fyers_secret') || '';
+
+document.getElementById('fyers-app-id').addEventListener('input', function() {
+  localStorage.setItem('fyers_app_id', this.value);
+});
+document.getElementById('fyers-secret').addEventListener('input', function() {
+  localStorage.setItem('fyers_secret', this.value);
+});
+
+function clearField(fieldId, storageKey) {
+  document.getElementById(fieldId).value = '';
+  localStorage.removeItem(storageKey);
+}
+// --- end of new code ---
+
+</script>   ← this closing tag stays, just add code above it
 </script>
 </body>
 </html>
