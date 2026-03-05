@@ -36,7 +36,7 @@ class FyersClient:
             self.client = fyersModel.FyersModel(
                 client_id=self.app_id,
                 is_async=False,
-                token=self.access_token,
+                token=f"{self.app_id}:{self.access_token}",
                 log_path=""
             )
             logger.info("Fyers client initialized successfully.")
