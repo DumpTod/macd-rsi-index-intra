@@ -54,15 +54,15 @@
     <button class="btn btn-outline btn-sm" onclick="clearField('fyers-secret','fyers_secret')">✕</button>
   </div>
 </div>
-      <div class="form-row">
-        <label class="form-label">Access Token</label>
-        <input class="form-input" type="password" id="fyers-token" placeholder="••••••••••••••••••••" />
-      </div>
-      <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-secondary);margin-top:8px;line-height:1.6">
-        ⚠ Access tokens expire daily. Update before market open.<br>
-        Store these as environment variables on Render for production.
-      </div>
-    </div>
+     <div class="form-row">
+  <label class="form-label">Access Token</label>
+  <div style="display:flex;gap:8px;align-items:center">
+    <input class="form-input" type="password" id="fyers-token" placeholder="••••••••••••••••••••" />
+    <button class="btn btn-outline btn-sm" onclick="toggleVisibility('fyers-token', 'eye-token')" style="flex-shrink:0;padding:8px">
+      <span id="eye-token">👁</span>
+    </button>
+  </div>
+</div>
 
     <!-- Backend URL -->
     <div class="settings-section">
@@ -254,6 +254,17 @@ function clearField(fieldId, storageKey) {
 // --- end of new code ---
 
 </script>   ← this closing tag stays, just add code above it
+  function toggleVisibility(fieldId, eyeId) {
+  const field = document.getElementById(fieldId);
+  const eye = document.getElementById(eyeId);
+  if (field.type === 'password') {
+    field.type = 'text';
+    eye.textContent = '🙈';
+  } else {
+    field.type = 'password';
+    eye.textContent = '👁';
+  }
+}
 </script>
 </body>
 </html>
