@@ -257,16 +257,16 @@ function clearField(fieldId, storageKey) {
 
 </script>   ← this closing tag stays, just add code above it
   function toggleVisibility(fieldId, eyeId) {
-  const field = document.getElementById(fieldId);
-  const eye = document.getElementById(eyeId);
-  if (field.type === 'password') {
-    field.type = 'text';
-    eye.textContent = '🙈';
-  } else {
-    field.type = 'password';
-    eye.textContent = '👁';
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(eyeId);
+    if (field.type === 'password') {
+      field.type = 'text';
+      eye.textContent = '🙈';
+    } else {
+      field.type = 'password';
+      eye.textContent = '👁';
+    }
   }
-}
 </script>
 </body>
 </html>
