@@ -81,7 +81,7 @@ async def refresh_token():
     from fyers_apiv3 import fyersModel
     app_id     = os.getenv("FYERS_APP_ID", "")
     secret_key = os.getenv("FYERS_SECRET_KEY", "")
-    redirect   = "https://macd-rsi-index-intra.onrender.com/callback"
+    redirect = os.getenv("FYERS_REDIRECT_URI", "https://macd-rsi-index-intra.onrender.com/callback")
 
     session = fyersModel.SessionModel(
         client_id=app_id,
