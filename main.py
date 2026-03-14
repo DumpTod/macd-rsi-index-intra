@@ -62,8 +62,96 @@ async def health():
         "time": datetime.now(IST).isoformat(),
         "market_open": get_scanner()._is_market_hours()
     }
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "time": datetime.now(IST).isoformat(),
+        "market_open": get_scanner()._is_market_hours()
+    }
+# ---------------------------------------------------------------------------
+# Fyers Token Refresh (visit /refresh in browser each morning)
+# ---------------------------------------------------------------------------
+import os, hashlib, requests as http_requests
+from fastapi.responses import RedirectResponse, HTMLResponse
+
+@app.get("/refresh")
+async def refresh_token():
+    """Visit this URL each morning to refresh Fyers access token."""
+    from fyers_apiv3 import fyersModel
+    app_id     = os.getenv("FYERS_APP_ID", "")
+    secret_key = os.getenv("FYERS_SECRET_KEY", "")
+    redirect   = "https://macd-rsi-index-intra.onrender.com/callback"
+
+    session = fyersModel.SessionModel(
+        client_id=app_id,
+        secret_key=secret_key,
+        redirect_uri=redirect,
+        response_type="code",
+        grant_type="authorization_code"
+    )
+    auth_url = session.generate_authcode()
+    return RedirectResponse(url=auth_url)
 
 
+@app.get("/callback")
+async def fyers_callback(auth_code: str = Query(None, alias="auth_code"),
+                         code: str = Query(None)):
+    """Fyers redirects here after login. Auto-generates and saves new token."""
+    from fyers_apiv3 import fyersModel
+    from fyers_api import FyersClient, _client
+    import fyers_api as fyers_module
+
+    auth = auth_code or code
+    if not auth:
+        return HTMLResponse("<h2>❌ No auth code received</h2>", status_code=400)
+
+    try:
+        app_id     = os.getenv("FYERS_APP_ID", "")
+        secret_key = os.getenv("FYERS_SECRET_KEY", "")
+        redirect   = "https://macd-rsi-index-intra.onrender.com/callback"
+
+        session = fyersModel.SessionModel(
+            client_id=app_id,
+            secret_key=secret_key,
+            redirect_uri=redirect,
+            response_type="code",
+            grant_type="authorization_code"
+        )
+        session.set_token(auth)
+        response = session.generate_token()
+
+        if response.get("s") != "ok":
+            return HTMLResponse(f"<h2>❌ Token error: {response}</h2>", status_code=400)
+
+        access_token = response["access_token"]
+
+        # Update environment variable in memory
+        os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
+        # Reinitialize Fyers client singleton
+        fyers_module._client = None  # reset singleton
+        new_client = fyers_module.get_fyers_client()  # reinitialize
+
+        # Also reinitialize scanner's fyers client
+        from scanner import get_scanner
+        scanner = get_scanner()
+        scanner.fyers = new_client
+
+        logger.info("Fyers token refreshed successfully via /callback")
+
+        return HTMLResponse("""
+        <html>
+        <body style="font-family:sans-serif;text-align:center;padding:60px;background:#F8F9FA">
+        <h1 style="color:#28A745">✅ Token Refreshed!</h1>
+        <p style="color:#2C3E50;font-size:18px">MACD+RSI Scanner is ready for today.</p>
+        <p style="color:#666">You can close this tab.</p>
+        </body></html>
+        """)
+
+    except Exception as e:
+        logger.error(f"Token refresh error: {e}")
+        return HTMLResponse(f"<h2>❌ Error: {e}</h2>", status_code=500)
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
