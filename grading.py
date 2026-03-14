@@ -18,7 +18,7 @@ GRADE_MAP = {
     0: "D",
 }
 
-DISPLAY_GRADES = {"A+", "A", "B+"}
+DISPLAY_GRADES = {"A+", "A", "B+", "B"}
 
 
 def macd_strength_score(histogram: pd.Series) -> int:
