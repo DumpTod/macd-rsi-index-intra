@@ -109,7 +109,7 @@ async def fyers_callback(auth_code: str = Query(None, alias="auth_code"),
     try:
         app_id     = os.getenv("FYERS_APP_ID", "")
         secret_key = os.getenv("FYERS_SECRET_KEY", "")
-        redirect   = "https://macd-rsi-index-intra.onrender.com/callback"
+        redirect = os.getenv("FYERS_REDIRECT_URI", "https://macd-rsi-index-intra.onrender.com/callback")
 
         session = fyersModel.SessionModel(
             client_id=app_id,
