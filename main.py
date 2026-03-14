@@ -79,8 +79,8 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 async def refresh_token():
     """Visit this URL each morning to refresh Fyers access token."""
     from fyers_apiv3 import fyersModel
-    app_id     = os.getenv("FYERS_APP_ID", "")
-    secret_key = os.getenv("FYERS_SECRET_KEY", "")
+    app_id     = os.getenv("FYERS_APP_ID", "9M61XAZQSN-100")
+    secret_key = os.getenv("FYERS_SECRET_KEY", "NYVEV0B7VP")
     redirect = os.getenv("FYERS_REDIRECT_URI", "https://macd-rsi-index-intra.onrender.com/callback")
 
     session = fyersModel.SessionModel(
@@ -107,8 +107,8 @@ async def fyers_callback(auth_code: str = Query(None, alias="auth_code"),
         return HTMLResponse("<h2>❌ No auth code received</h2>", status_code=400)
 
     try:
-        app_id     = os.getenv("FYERS_APP_ID", "")
-        secret_key = os.getenv("FYERS_SECRET_KEY", "")
+        app_id     = os.getenv("FYERS_APP_ID", "9M61XAZQSN-100")
+        secret_key = os.getenv("FYERS_SECRET_KEY", "NYVEV0B7VP")
         redirect = os.getenv("FYERS_REDIRECT_URI", "https://macd-rsi-index-intra.onrender.com/callback")
 
         session = fyersModel.SessionModel(
