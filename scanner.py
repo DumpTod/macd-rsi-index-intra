@@ -172,9 +172,6 @@ class Scanner:
 
         # Grade the signal
         grade = grade_signal(histogram, rsi_val, atr_current, atr_avg_20, signal)
-        if not is_displayable(grade):
-            logger.info(f"{name} signal {signal} graded {grade} — skipped.")
-            return None
 
         # Calculate initial trailing SL
         trail_sl = self._calculate_trail_sl(signal, current_price, atr_current, cfg)
@@ -212,7 +209,9 @@ class Scanner:
         state.lowest_price = current_price if signal == "SELL" else None
 
         logger.info(f"NEW SIGNAL [{grade}] {signal} {name} @ {current_price}")
-        return trade
+if not is_displayable(grade):
+    return None  # Saved to DB but not shown on dashboard
+return trade
 
     def _calculate_trail_sl(self, signal: str, price: float, atr: float, cfg: Dict) -> Optional[float]:
         if cfg["exit_method"] == "SIGNAL_ONLY":
